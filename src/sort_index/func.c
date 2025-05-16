@@ -5,7 +5,7 @@ uint64_t blocks;
 uint64_t threads;
 int fd;
 
-void check_cmd_line(int argc, char** argv) {
+void validate_args(int argc, char** argv) {
     if (argc != 5) {
         fprintf(stderr, "Usage: %s <memsize> <blocks> <threads> <filename>\n", argv[0]);
         fprintf(stderr, "<memsize> - size of working buffer, multiple of the page size\n");

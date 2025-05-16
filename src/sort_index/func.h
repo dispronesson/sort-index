@@ -4,7 +4,7 @@
 #define _DEFAULT_SOURCE
 
 #include <stdio.h>
-#include <mman.h>
+#include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -12,7 +12,7 @@
 #include <errno.h>
 #include <ctype.h>
 
-void check_cmd_line(int argc, char** argv);
+void validate_args(int argc, char** argv);
 int parse_ull(const char* str, uint64_t* out);
 
 #endif //FUNC_H
