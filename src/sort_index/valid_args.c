@@ -32,8 +32,8 @@ ctx_t* validate_args(int argc, char** argv) {
     if (res == -2) parse_err("threads", 1);
     if (res == -3 || threads == 0) parse_err("threads", 2);
 
-    long k = sysconf(_SC_NPROCESSORS_ONLN);
-    long n = 8 * k;
+    uint64_t k = (uint64_t)sysconf(_SC_NPROCESSORS_ONLN);
+    uint64_t n = 8 * k;
     if (threads < k || threads > n) {
         fprintf(stderr, "sort_index: <threads> - must be between %ld and %ld\n", k, n);
         exit(EXIT_FAILURE);
@@ -116,7 +116,7 @@ off_t validate_file(int fd) {
         return -1;
     }
 
-    off_t data_size = file_size - sizeof(uint64_t);
+    uint64_t data_size = file_size - sizeof(uint64_t);
     if (data_size == 0) {
         fprintf(stderr, "sort_index: file doesn't contain index records\n");
         return -1;

@@ -172,7 +172,7 @@ void merge_final(ctx_t* ctx) {
     while (step < full) {
         off_t left_off = 8;
 
-        while (left_off + step < ctx->file_end) {
+        while (left_off + (off_t)step < ctx->file_end) {
             off_t right_off = left_off + step;
 
             size_t left_bytes = step;

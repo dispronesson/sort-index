@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    off_t data_size = file_size - sizeof(uint64_t);
+    uint64_t data_size = file_size - sizeof(uint64_t);
     if (data_size == 0) {
         fprintf(stderr, "sort_check: file doesn't contain index records\n");
         close(fd);
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     }
 
     struct index_s idxs;
-    r = read(fd, &idxs, sizeof(struct index_s));
+    r = read(fd, &idxs, (off_t)sizeof(struct index_s));
     if (r != sizeof(struct index_s)) {
         perror("sort_check: read record");
         close(fd);
