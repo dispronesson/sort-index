@@ -14,6 +14,9 @@ int main(int argc, char* argv[]) {
         if (rc != 0) {
             errno = rc;
             perror("sortindex: pthread_create");
+            close(ctx->fd);
+            free(ctx->map);
+            free(ctx);
             exit(EXIT_FAILURE);
         }
     }
