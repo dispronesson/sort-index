@@ -22,7 +22,7 @@ ctx_t* validate_args(int argc, char** argv) {
     if (res == -2) parse_err("blocks", 1);
     if (res == -3 || blocks == 0) parse_err("blocks", 2);
     if ((blocks & (blocks - 1)) != 0) {
-        fprintf(stderr, "sort_index: <blocks> - must be a power of two\n");
+        fprintf(stderr, "sortindex: <blocks> - must be a power of two\n");
         exit(EXIT_FAILURE);
     }
 
@@ -35,17 +35,17 @@ ctx_t* validate_args(int argc, char** argv) {
     uint64_t k = (uint64_t)sysconf(_SC_NPROCESSORS_ONLN);
     uint64_t n = 8 * k;
     if (threads < k || threads > n) {
-        fprintf(stderr, "sort_index: <threads> - must be between %ld and %ld\n", k, n);
+        fprintf(stderr, "sortindex: <threads> - must be between %ld and %ld\n", k, n);
         exit(EXIT_FAILURE);
     }
     if (threads >= blocks) {
-        fprintf(stderr, "sort_index: <threads> - must be < than <blocks>\n");
+        fprintf(stderr, "sortindex: <threads> - must be < than <blocks>\n");
         exit(EXIT_FAILURE);
     }
 
     int fd = open(argv[4], O_RDWR);
     if (fd == -1) {
-        perror("sort_index: open");
+        perror("sortindex: open");
         exit(EXIT_FAILURE);
     }
 
@@ -82,16 +82,16 @@ int parse_ull(const char* str, uint64_t* out) {
 void parse_err(const char* str, int opcode) {
     switch (opcode) {
         case 0:
-            fprintf(stderr, "sort_index: <%s> - not valid number\n", str);
+            fprintf(stderr, "sortindex: <%s> - not valid number\n", str);
             exit(EXIT_FAILURE);
         case 1:
-            fprintf(stderr, "sort_index: <%s> - overflow\n", str);
+            fprintf(stderr, "sortindex: <%s> - overflow\n", str);
             exit(EXIT_FAILURE);
         case 2:
-            fprintf(stderr, "sort_index: <%s> - negative or zero\n", str);
+            fprintf(stderr, "sortindex: <%s> - negative or zero\n", str);
             exit(EXIT_FAILURE);
         default:
-            fprintf(stderr, "sort_index: <%s> - undefined error\n", str);
+            fprintf(stderr, "sortindex: <%s> - undefined error\n", str);
             exit(EXIT_FAILURE);
     }
 }
@@ -99,34 +99,34 @@ void parse_err(const char* str, int opcode) {
 off_t validate_file(int fd) {
     struct stat st;
     if (fstat(fd, &st) == -1) {
-        perror("sort_index: fstat");
+        perror("sortindex: fstat");
         return -1;
     }
 
     off_t file_size = st.st_size;
     if (file_size < (off_t)sizeof(uint64_t)) {
-        fprintf(stderr, "sort_index: file doesn't contain a header\n");
+        fprintf(stderr, "sortindex: file doesn't contain a header\n");
         return -1;
     }
 
     uint64_t records;
     ssize_t r = read(fd, &records, sizeof(uint64_t));
     if (r != sizeof(uint64_t)) {
-        perror("sort_index: read header");
+        perror("sortindex: read header");
         return -1;
     }
 
     uint64_t data_size = file_size - sizeof(uint64_t);
     if (data_size == 0) {
-        fprintf(stderr, "sort_index: file doesn't contain index records\n");
+        fprintf(stderr, "sortindex: file doesn't contain index records\n");
         return -1;
     }
     if ((data_size & 0xFF) != 0) {
-        fprintf(stderr, "sort_index: index records is not multiple of 256\n");
+        fprintf(stderr, "sortindex: index records is not multiple of 256\n");
         return -1;
     }
     if (data_size != records * sizeof(index_s)) {
-        fprintf(stderr, "sort_index: data size mismatch with record count\n");
+        fprintf(stderr, "sortindex: data size mismatch with record count\n");
         return -1;
     }
 
@@ -136,7 +136,8 @@ off_t validate_file(int fd) {
 ctx_t* ctx_init(size_t memsize, uint64_t blocks, uint64_t threads, int fd, off_t file_end) {
     ctx_t* ctx = malloc(sizeof(ctx_t));
     if (!ctx) {
-        perror("sort_index: malloc");
+        perror("sortindex: malloc");
+        close(fd);
         exit(EXIT_FAILURE);
     }
 
@@ -151,7 +152,9 @@ ctx_t* ctx_init(size_t memsize, uint64_t blocks, uint64_t threads, int fd, off_t
     
     ctx->map = malloc(blocks * sizeof(block_t));
     if (!ctx->map) {
-        perror("sort_index: malloc");
+        perror("sortindex: malloc");
+        free(ctx);
+        close(fd);
         exit(EXIT_FAILURE);
     }
 

@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
         int rc = pthread_create(&tids[i - 1], NULL, worker, &targ[i]);
         if (rc != 0) {
             errno = rc;
-            perror("sort_index: pthread_create");
+            perror("sortindex: pthread_create");
             exit(EXIT_FAILURE);
         }
     }
@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
         pthread_join(tids[i - 1], NULL);
     }
 
+    close(ctx->fd);
     pthread_mutex_destroy(&ctx->map_mtx);
     pthread_barrier_destroy(&ctx->barrier);
 

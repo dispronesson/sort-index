@@ -46,7 +46,10 @@ int load_next_chunk(ctx_t* ctx) {
 
     void* map = mmap(NULL, map_len, PROT_READ | PROT_WRITE, MAP_SHARED, ctx->fd, aligned_off);
     if (map == MAP_FAILED) {
-        perror("sort_index: mmap");
+        perror("sortindex: mmap");
+        close(ctx->fd);
+        free(ctx->map);
+        free(ctx);
         exit(EXIT_FAILURE);
     }
 
@@ -126,6 +129,14 @@ void merge_round(ctx_t* ctx, uint32_t tid, uint64_t cur_blokcs) {
     size_t m = ctx->map[right].size;
 
     index_s* tmp = malloc((n + m) * sizeof(index_s));
+    if (!tmp) {
+        perror("sortindex: malloc");
+        munmap(ctx->map_base, ctx->map_len);
+        close(ctx->fd);
+        free(ctx->map);
+        free(ctx);
+        exit(EXIT_FAILURE);
+    }
 
     size_t i = 0, j = 0, k = 0;
     while (i < n && j < m) {
@@ -188,14 +199,20 @@ void merge_final(ctx_t* ctx) {
 
             void* left_map = mmap(NULL, left_map_len, PROT_READ, MAP_PRIVATE, ctx->fd, left_align);
             if (left_map == MAP_FAILED) {
-                perror("sort_index: mmap left");
+                perror("sortindex: mmap");
+                close(ctx->fd);
+                free(ctx->map);
+                free(ctx);
                 exit(EXIT_FAILURE);
             }
 
             void* right_map = mmap(NULL, right_map_len, PROT_READ, MAP_PRIVATE, ctx->fd, right_align);
             if (right_map == MAP_FAILED) {
-                perror("sort_index: mmap right");
+                perror("sortindex: mmap");
                 munmap(left_map, left_map_len);
+                close(ctx->fd);
+                free(ctx->map);
+                free(ctx);
                 exit(EXIT_FAILURE);
             }
 
@@ -208,7 +225,12 @@ void merge_final(ctx_t* ctx) {
 
             index_s* out = malloc(left_bytes + right_bytes);
             if (!out) {
-                perror("sort_index: malloc");
+                perror("sortindex: malloc");
+                munmap(right_map, right_map_len);
+                munmap(left_map, left_map_len);
+                close(ctx->fd);
+                free(ctx->map);
+                free(ctx);
                 exit(EXIT_FAILURE);
             }
             size_t k = 0;
